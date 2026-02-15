@@ -1,0 +1,5 @@
+certifi==2025.11.12
+cffi==2.0.0
+cryptography==46.0.3
+pycparser==2.23
+wheel==0.45.1
