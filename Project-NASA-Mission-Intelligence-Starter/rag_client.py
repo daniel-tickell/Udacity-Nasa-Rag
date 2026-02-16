@@ -9,71 +9,104 @@ def discover_chroma_backends() -> Dict[str, Dict[str, str]]:
     current_dir = Path(".")
     
     # Look for ChromaDB directories
-    # TODO: Create list of directories that match specific criteria (directory type and name pattern)
+    # Identify directories that look like ChromaDB stores (e.g., 'chroma_db', '*_db')
+    potential_dirs = [d for d in current_dir.iterdir() if d.is_dir() and ('chroma' in d.name or 'db' in d.name)]
 
-    # TODO: Loop through each discovered directory
-        # TODO: Wrap connection attempt in try-except block for error handling
-        
-            # TODO: Initialize database client with directory path and configuration settings
+    for chroma_dir in potential_dirs:
+        # Use a try block for error handling
+        try:
+            # Initialize database client with directory path and configuration settings
+            client = chromadb.PersistentClient(path=str(chroma_dir))
             
-            # TODO: Retrieve list of available collections from the database
+            # Retrieve list of available collections from the database
+            collections = client.list_collections()
             
-            # TODO: Loop through each collection found
-                # TODO: Create unique identifier key combining directory and collection names
-                # TODO: Build information dictionary containing:
-                    # TODO: Store directory path as string
-                    # TODO: Store collection name
-                    # TODO: Create user-friendly display name
-                    # TODO: Get document count with fallback for unsupported operations
-                # TODO: Add collection information to backends dictionary
-        
-        # TODO: Handle connection or access errors gracefully
-            # TODO: Create fallback entry for inaccessible directories
-            # TODO: Include error information in display name with truncation
-            # TODO: Set appropriate fallback values for missing information
+            for collection in collections:
+                # Create unique identifier key combining directory and collection names
+                key = f"{chroma_dir.name}/{collection.name}"
+                
+                # Get document count with fallback
+                try:
+                    count = collection.count()
+                except:
+                    count = "Unknown"
 
-    # TODO: Return complete backends dictionary with all discovered collections
+                # Build information dictionary
+                backends[key] = {
+                    "path": str(chroma_dir),
+                    "collection": collection.name,
+                    "display_name": f"{collection.name} ({chroma_dir.name})",
+                    "count": count
+                }
+        
+        except Exception as e:
+            # Handle connection or access errors gracefully
+            print(f"Skipping directory {chroma_dir}: {e}") # logging The skipped Directory
+            pass
+
+    return backends
 
 def initialize_rag_system(chroma_dir: str, collection_name: str):
     """Initialize the RAG system with specified backend (cached for performance)"""
-
-    # TODO: Create a chomadb persistentclient
-    # TODO: Return the collection with the collection_name
+    # Create a chromadb persistent client
+    client = chromadb.PersistentClient(path=chroma_dir)
+    
+    # Return the collection with the collection_name
+    return client.get_collection(collection_name)
 
 def retrieve_documents(collection, query: str, n_results: int = 3, 
                       mission_filter: Optional[str] = None) -> Optional[Dict]:
     """Retrieve relevant documents from ChromaDB with optional filtering"""
 
-    # TODO: Initialize filter variable to None (represents no filtering)
+    # Check if filter parameter exists and is not set to "all"
+    where_filter = None
+    if mission_filter and mission_filter.lower() != "all":
+        # Create filter dictionary with appropriate field-value pairs
+        where_filter = {"mission": mission_filter}
 
-    # TODO: Check if filter parameter exists and is not set to "all" or equivalent
-    # TODO: If filter conditions are met, create filter dictionary with appropriate field-value pairs
+    # Execute database query
+    results = collection.query(
+        query_texts=[query],
+        n_results=n_results,
+        where=where_filter
+    )
 
-    # TODO: Execute database query with the following parameters:
-        # TODO: Pass search query in the required format
-        # TODO: Set maximum number of results to return
-        # TODO: Apply conditional filter (None for no filtering, dictionary for specific filtering)
-
-    # TODO: Return query results to caller
+    return results
 
 def format_context(documents: List[str], metadatas: List[Dict]) -> str:
     """Format retrieved documents into context"""
     if not documents:
         return ""
     
-    # TODO: Initialize list with header text for context section
+    context_parts = ["SOURCE DOCUMENTS:\n"]
 
-    # TODO: Loop through paired documents and their metadata using enumeration
-        # TODO: Extract mission information from metadata with fallback value
-        # TODO: Clean up mission name formatting (replace underscores, capitalize)
-        # TODO: Extract source information from metadata with fallback value  
-        # TODO: Extract category information from metadata with fallback value
-        # TODO: Clean up category name formatting (replace underscores, capitalize)
-        
-        # TODO: Create formatted source header with index number and extracted information
-        # TODO: Add source header to context parts list
-        
-        # TODO: Check document length and truncate if necessary
-        # TODO: Add truncated or full document content to context parts list
+    # Loop through paired documents and their metadata using enumeration
+    # As we are only sending one query, we look at the first element.
+    if isinstance(documents[0], list):
+        docs = documents[0]
+        metas = metadatas[0] if metadatas else []
+    else:
+        docs = documents
+        metas = metadatas
 
-    # TODO: Join all context parts with newlines and return formatted string
+    for i, (doc, meta) in enumerate(zip(docs, metas)):
+        # Extract mission information
+        mission = meta.get('mission', 'Unknown Mission').replace('_', ' ').title()
+        
+        # Extract source information
+        source = meta.get('source', 'Unknown Source')
+        
+        # Extract category information
+        category = meta.get('document_category', 'General').replace('_', ' ').title()
+        
+        # Create formatted source header
+        header = f"--- Document {i+1} [Mission: {mission} | Source: {source} | Category: {category}] ---"
+        context_parts.append(header)
+        
+        # Check document length and truncate if necessary (e.g., limit to 2000 chars)
+        content = doc if len(doc) < 2000 else doc[:2000] + "... (truncated)"
+        context_parts.append(content)
+        context_parts.append("") # Add a newline spacing
+
+    # Join all context parts with newlines and return formatted string
+    return "\n".join(context_parts)

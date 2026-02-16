@@ -18,10 +18,29 @@ def evaluate_response_quality(question: str, answer: str, contexts: List[str]) -
     if not RAGAS_AVAILABLE:
         return {"error": "RAGAS not available"}
     
-    # TODO: Create evaluator LLM with model gpt-3.5-turbo
-    # TODO: Create evaluator_embeddings with model test-embedding-3-small
-    # TODO: Define an instance for each metric to evaluate
-    # TODO: Evaluate the response using the metrics
-    # TODO: Return the evaluation results
+    # Create evaluator LLM with model gpt-3.5-turbo
+    evaluator_llm = LangchainLLMWrapper(ChatOpenAI(model="gpt-3.5-turbo"))
+    
+    # Create evaluator_embeddings with model test-embedding-3-small
+    evaluator_embeddings = LangchainEmbeddingsWrapper(OpenAIEmbeddings(model="text-embedding-3-small"))
 
-    pass
+    # Define an instance for each metric to evaluate
+    metrics = [
+        ResponseRelevancy(),
+        Faithfulness()
+    ]
+    
+    # Evaluate the response using the metrics
+    # Try Block for error handling
+    try:
+        results = evaluate(
+            dataset=[sample],
+            metrics=metrics,
+            llm=evaluator_llm,
+            embeddings=evaluator_embeddings
+        )
+   
+        # Return the evaluation results
+        return {k: float(v) for k, v in results.items()}
+    except Exception as e:
+        return {"error": f"RAGAS evaluation failed: {str(e)}"}
