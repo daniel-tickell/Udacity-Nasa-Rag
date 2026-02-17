@@ -1,22 +1,23 @@
 from typing import Dict, List
 from openai import OpenAI
 import os
-    # TODO: Define system prompt
-    # TODO: Set context in messages
-    # TODO: Add chat history
-    # TODO: Creaet OpenAI Client
-    # TODO: Send request to OpenAI
-    # TODO: Return response
-    
 
-def generate_response(openai_key: str, user_message: str, context: str, 
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+def generate_response(openai_key: str | None, user_message: str, context: str, 
                      conversation_history: List[Dict], model: str = "gpt-3.5-turbo") -> str:
     """
     Generate response using OpenAI with context.
     Matches the signature expected by chat.py.
     """
     
-    # Check if API key is provided
+    # Check if API key is provided, if not, try to get from environment
+    if not openai_key:
+        openai_key = os.getenv("OPENAI_API_KEY")
+
     if not openai_key:
         return "Error: OpenAI API key is missing."
 

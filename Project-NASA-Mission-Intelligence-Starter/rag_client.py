@@ -33,8 +33,8 @@ def discover_chroma_backends() -> Dict[str, Dict[str, str]]:
 
                 # Build information dictionary
                 backends[key] = {
-                    "path": str(chroma_dir),
-                    "collection": collection.name,
+                    "directory": str(chroma_dir),
+                    "collection_name": collection.name,
                     "display_name": f"{collection.name} ({chroma_dir.name})",
                     "count": count
                 }
@@ -52,7 +52,11 @@ def initialize_rag_system(chroma_dir: str, collection_name: str):
     client = chromadb.PersistentClient(path=chroma_dir)
     
     # Return the collection with the collection_name
-    return client.get_collection(collection_name)
+    try:
+        collection = client.get_collection(collection_name)
+        return collection, True, None
+    except Exception as e:
+        return None, False, str(e)
 
 def retrieve_documents(collection, query: str, n_results: int = 3, 
                       mission_filter: Optional[str] = None) -> Optional[Dict]:

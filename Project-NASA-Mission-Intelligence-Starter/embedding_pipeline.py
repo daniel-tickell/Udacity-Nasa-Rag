@@ -26,6 +26,11 @@ import hashlib
 import time
 from datetime import datetime
 import argparse
+import sys
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
 
 # Configure logging

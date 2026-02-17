@@ -15,6 +15,9 @@ import ragas_evaluator
 import rag_client
 import llm_client
 
+from dotenv import load_dotenv
+load_dotenv()
+
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -101,7 +104,11 @@ def display_evaluation_metrics(scores: Dict[str, float]):
             )
             
             # Add progress bar
-            st.sidebar.progress(score)
+            # Ensure score is within 0.0 and 1.0 and is not NaN
+            if score >= 0.0 and score <= 1.0:
+                st.sidebar.progress(score)
+            else:
+                 st.sidebar.caption(f"Score: {score}")
 
 def main():
     st.title("🚀 NASA Space Mission Chat with Evaluation")
@@ -157,6 +164,8 @@ def main():
             st.stop()
         else:
             os.environ["CHROMA_OPENAI_API_KEY"] = openai_key
+            # RAGAS uses ChatOpenAI which looks for OPENAI_API_KEY
+            os.environ["OPENAI_API_KEY"] = openai_key
         
         # Model selection
         model_choice = st.selectbox(

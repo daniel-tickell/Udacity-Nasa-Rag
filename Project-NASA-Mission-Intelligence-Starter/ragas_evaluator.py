@@ -6,7 +6,7 @@ from typing import Dict, List, Optional
 
 # RAGAS imports
 try:
-    from ragas import SingleTurnSample
+    from ragas import SingleTurnSample, EvaluationDataset
     from ragas.metrics import BleuScore, NonLLMContextPrecisionWithReference, ResponseRelevancy, Faithfulness, RougeScore
     from ragas import evaluate
     RAGAS_AVAILABLE = True
@@ -30,17 +30,27 @@ def evaluate_response_quality(question: str, answer: str, contexts: List[str]) -
         Faithfulness()
     ]
     
+    # Create sample
+    sample = SingleTurnSample(
+        user_input=question,
+        response=answer,
+        retrieved_contexts=contexts
+    )
+
     # Evaluate the response using the metrics
     # Try Block for error handling
     try:
+        dataset = EvaluationDataset([sample])
         results = evaluate(
-            dataset=[sample],
+            dataset=dataset,
             metrics=metrics,
             llm=evaluator_llm,
             embeddings=evaluator_embeddings
         )
    
-        # Return the evaluation results
-        return {k: float(v) for k, v in results.items()}
+        # Return the evaluation results (scores)
+        # Use pandas to get the first row and convert to dict
+        df = results.to_pandas()
+        return df.iloc[0].to_dict()
     except Exception as e:
         return {"error": f"RAGAS evaluation failed: {str(e)}"}
