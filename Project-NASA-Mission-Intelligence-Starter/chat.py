@@ -10,16 +10,15 @@ import streamlit as st
 import os
 import json
 import pandas as pd
-
 import ragas_evaluator
 import rag_client
 import llm_client
-
-from dotenv import load_dotenv
-load_dotenv()
-
 from pathlib import Path
 from typing import Dict, List, Optional
+
+# Load environment variables (for OpenAI API key)
+from dotenv import load_dotenv
+load_dotenv()
 
 # RAGAS imports
 try:
@@ -102,13 +101,12 @@ def display_evaluation_metrics(scores: Dict[str, float]):
                 value=f"{score:.3f}",
                 delta=None
             )
-            
-            # Add progress bar
-            # Ensure score is within 0.0 and 1.0 and is not NaN
-            if score >= 0.0 and score <= 1.0:
+        # Add a check to ensure score is a valid number before creating the progress bar to fix
+        # A runtime error
+            if isinstance(score, (int, float)) and 0 <= score <= 1:
                 st.sidebar.progress(score)
             else:
-                 st.sidebar.caption(f"Score: {score}")
+                st.sidebar.warning(f"Invalid score for {metric_name}: {score}")
 
 def main():
     st.title("🚀 NASA Space Mission Chat with Evaluation")
@@ -164,7 +162,7 @@ def main():
             st.stop()
         else:
             os.environ["CHROMA_OPENAI_API_KEY"] = openai_key
-            # RAGAS uses ChatOpenAI which looks for OPENAI_API_KEY
+            # Added for compatibility with RAGAS which uses ChatOpenAI which looks for OPENAI_API_KEY
             os.environ["OPENAI_API_KEY"] = openai_key
         
         # Model selection

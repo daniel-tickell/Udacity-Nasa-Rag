@@ -78,9 +78,18 @@ class ChromaEmbeddingPipelineTextOnly:
         # Initialize ChromaDB client
         self.chroma_client = chromadb.PersistentClient(path=chroma_persist_directory)
         
+        # Define embedding function
+        openai_ef = OpenAIEmbeddingFunction(
+            api_key=openai_api_key,
+            model_name=embedding_model
+        )
+        
         # Create or get collection
         # checking if collection exists is handled by get_or_create_collection
-        self.collection = self.chroma_client.get_or_create_collection(name=collection_name)
+        self.collection = self.chroma_client.get_or_create_collection(
+            name=collection_name,
+            embedding_function=openai_ef
+        )
     
     def chunk_text(self, text: str, metadata: Dict[str, Any]) -> List[Tuple[str, Dict[str, Any]]]:
         """

@@ -2,6 +2,12 @@ import chromadb
 from chromadb.config import Settings
 from typing import Dict, List, Optional
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
+
+# Load environment variables
+load_dotenv()
 
 def discover_chroma_backends() -> Dict[str, Dict[str, str]]:
     """Discover available ChromaDB backends in the project directory"""
@@ -53,7 +59,16 @@ def initialize_rag_system(chroma_dir: str, collection_name: str):
     
     # Return the collection with the collection_name
     try:
-        collection = client.get_collection(collection_name)
+        # Define embedding function
+        openai_ef = OpenAIEmbeddingFunction(
+            api_key=os.getenv("OPENAI_API_KEY"),
+            model_name="text-embedding-3-small"
+        )
+        
+        collection = client.get_collection(
+            name=collection_name,
+            embedding_function=openai_ef
+        )
         return collection, True, None
     except Exception as e:
         return None, False, str(e)
