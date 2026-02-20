@@ -44,6 +44,7 @@ def generate_response(openai_key, user_message: str, context: str,
 
         Your role is to:
         - Answer questions about the missions, spacecraft, and any situations encountered during the missions.
+        - Provide explicit citations to the source data in responses.
         - Use the context provided to answer questions about the missions and the spacecraft.
         - Use the context provided to provide guidance on troubleshooting.
         - Use the context provided to provide guidance on decisions to be made during the mission.
@@ -52,6 +53,9 @@ def generate_response(openai_key, user_message: str, context: str,
         
         If the question is outside of the scope of the missions, spacecraft and any situations encountered during the missions, respond with:
         "I'm sorry, but I can only answer questions about the missions, spacecraft and any situations encountered during the missions."
+
+        If the context is missing or insufficient respond with:
+        "I'm sorry, but I don't know based on the provided context"
         """
         
         # Initialize messages with system prompt
@@ -64,7 +68,15 @@ def generate_response(openai_key, user_message: str, context: str,
             messages.append({"role": "system", "content": f"Context information is below.\n----------------\n{context}\n----------------"})
             
         # Add conversation history
-        for msg in conversation_history:
+        # Filter to ensure we only send valid roles (system, user, assistant) and valid content
+        # Limit history to prevent token overflow (e.g., last 5 messages to keep context focused)
+        # Updated based on feedback from submission 1
+        # Limit history to last 5 messages
+        history_limit = 5
+        # Check if conversation history is relevant
+        relevant_history = conversation_history[-history_limit:] if len(conversation_history) > history_limit else conversation_history
+        
+        for msg in relevant_history:
             if msg.get("role") in ["user", "assistant"] and msg.get("content"):
                 messages.append({"role": msg["role"], "content": msg["content"]})
                 

@@ -1,0 +1,72 @@
+[
+    {
+        "question": "Which Apollo mission was the first to land humans on the Moon?",
+        "answer": "Apollo 11 was the first mission to land humans on the Moon, achieving this milestone on July 20, 1969.",
+        "contexts": [
+            "Apollo 11 was the first mission to land humans on the Moon, achieving this milestone on July 20, 1969."
+        ]
+    },
+    {
+        "question": "Who were the three astronauts assigned to the Apollo 11 mission?",
+        "answer": "The three astronauts on the Apollo 11 mission were Neil Armstrong, Buzz Aldrin, and Michael Collins.",
+        "contexts": [
+            "The three astronauts on the Apollo 11 mission were Neil Armstrong, Buzz Aldrin, and Michael Collins."
+        ]
+    },
+    {
+        "question": "How many crewed Apollo missions successfully landed on the Moon?",
+        "answer": "Six crewed Apollo missions successfully landed on the Moon: Apollo 11, 12, 14, 15, 16, and 17.",
+        "contexts": [
+            "Six crewed Apollo missions successfully landed on the Moon: Apollo 11, 12, 14, 15, 16, and 17."
+        ]
+    },
+    {
+        "question": "What technical failure caused the Apollo 13 lunar landing to be aborted?",
+        "answer": "The Apollo 13 lunar landing was aborted due to an electrical short circuit that caused an oxygen tank in the service module to explode, disabling the primary life support and power systems.",
+        "contexts": [
+            "The Apollo 13 lunar landing was aborted due to an electrical short circuit that caused an oxygen tank in the service module to explode, disabling the primary life support and power systems."
+        ]
+    },
+    {
+        "question": "Who was the last astronaut to walk on the lunar surface during the Apollo program?",
+        "answer": "Eugene (Gene) Cernan was the last astronaut to walk on the Moon, doing so during the Apollo 17 mission in December 1972.",
+        "contexts": [
+            "Eugene (Gene) Cernan was the last astronaut to walk on the Moon, doing so during the Apollo 17 mission in December 1972."
+        ]
+    },
+    {
+        "question": "What was the primary historical milestone achieved by the Apollo 8 mission?",
+        "answer": "Apollo 8 was the first crewed spacecraft to leave low Earth orbit, travel to the Moon, orbit it, and return safely to Earth.",
+        "contexts": [
+            "Apollo 8 was the first crewed spacecraft to leave low Earth orbit, travel to the Moon, orbit it, and return safely to Earth."
+        ]
+    },
+    {
+        "question": "What specific type of launch vehicle was used to send the crewed Apollo missions to the Moon?",
+        "answer": "The Saturn V heavy-lift rocket was used to launch all the crewed Apollo missions to the Moon.",
+        "contexts": [
+            "The Saturn V heavy-lift rocket was used to launch all the crewed Apollo missions to the Moon."
+        ]
+    },
+    {
+        "question": "Why was the Apollo 1 mission canceled before it could launch?",
+        "answer": "Apollo 1 was canceled because a cabin fire erupted during a prelaunch rehearsal test on January 27, 1967, resulting in the deaths of astronauts Virgil Grissom, Edward White, and Roger Chaffee.",
+        "contexts": [
+            "Apollo 1 was canceled because a cabin fire erupted during a prelaunch rehearsal test on January 27, 1967, resulting in the deaths of astronauts Virgil Grissom, Edward White, and Roger Chaffee."
+        ]
+    },
+    {
+        "question": "During which Apollo mission was the Lunar Roving Vehicle (LRV) used for the first time?",
+        "answer": "The Lunar Roving Vehicle was first used to explore the lunar surface during the Apollo 15 mission.",
+        "contexts": [
+            "The Lunar Roving Vehicle was first used to explore the lunar surface during the Apollo 15 mission."
+        ]
+    },
+    {
+        "question": "What is the total weight of lunar rocks and soil brought back to Earth by the Apollo missions?",
+        "answer": "The Apollo program returned a total of 842 pounds (382 kilograms) of lunar rocks and soil to Earth.",
+        "contexts": [
+            "The Apollo program returned a total of 842 pounds (382 kilograms) of lunar rocks and soil to Earth."
+        ]
+    }
+]

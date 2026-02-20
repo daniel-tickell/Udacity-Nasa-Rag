@@ -11,6 +11,7 @@ Supported data sources:
 - Apollo 13 extracted data (text files only)
 - Apollo 11 Textract extracted data (text files only)
 - Challenger transcribed audio data (text files only)
+
 """
 
 import os
@@ -72,6 +73,11 @@ class ChromaEmbeddingPipelineTextOnly:
         # Store configuration parameters
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
+        
+        # Updated based on feedback from submission 1
+        # Safety Guard for invalid configurations
+        if self.chunk_overlap >= self.chunk_size:
+            raise ValueError(f"chunk_overlap ({self.chunk_overlap}) must be less than chunk_size ({self.chunk_size}) to ensure forward progress.")
         self.chroma_persist_directory = chroma_persist_directory
         self.collection_name = collection_name
         
@@ -133,8 +139,11 @@ class ChromaEmbeddingPipelineTextOnly:
                 chunk_metadata['chunk_index'] = len(chunks)
                 chunks.append((chunk_text, chunk_metadata))
             
-            next_start = start + self.chunk_size - self.chunk_overlap
+            # Updated based on feedback from submission 1
+            # Set the next chunk start from the actual previous chunk end so overlap remains consistent
+            next_start = end - self.chunk_overlap
 
+            # Ensure we always move forward
             start = max(start + 1, next_start)
             
         # Update total chunks count in metadata
