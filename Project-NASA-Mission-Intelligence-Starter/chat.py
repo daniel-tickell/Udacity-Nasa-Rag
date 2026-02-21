@@ -11,6 +11,7 @@ import os
 import json
 import pandas as pd
 import ragas_evaluator
+import ragas_batch_evaluator
 import rag_client
 import llm_client
 from pathlib import Path
@@ -23,6 +24,7 @@ load_dotenv()
 # RAGAS imports
 try:
     from ragas import SingleTurnSample
+    from ragas.metrics import BleuScore, RougeScore
     RAGAS_AVAILABLE = True
 except ImportError:
     RAGAS_AVAILABLE = False
@@ -37,13 +39,11 @@ st.set_page_config(
 
 def discover_chroma_backends() -> Dict[str, Dict[str, str]]:
     """Discover available ChromaDB backends in the project directory"""
-
     return rag_client.discover_chroma_backends()
 
 #@st.cache_resource
 def initialize_rag_system(chroma_dir: str, collection_name: str):
     """Initialize the RAG system with specified backend (cached for performance)"""
-
     try:
        return rag_client.initialize_rag_system(chroma_dir, collection_name)
     except Exception as e:
@@ -71,21 +71,20 @@ def generate_response(openai_key, user_message: str, context: str,
     except Exception as e:
         return f"Error generating response: {e}"
 
-def evaluate_response_quality(question: str, answer: str, contexts: List[str]) -> Dict[str, float]:
+def evaluate_response_quality(metrics: List[str], question: str, answer: str, contexts: List[str]) -> Dict[str, float]:
     """Evaluate response quality using RAGAS metrics"""
     try:
-        return ragas_evaluator.evaluate_response_quality(question, answer, contexts)
+        return ragas_evaluator.evaluate_response_quality(metrics, question, answer, contexts)
     except Exception as e:
         return {"error": f"Evaluation failed: {str(e)}"}
 
-def display_evaluation_metrics(scores: Dict[str, float]):
+def display_evaluation_metrics(scores: Dict[str, float], title="📊 Single Query Quality"):
     """Display evaluation metrics in the sidebar"""
     if "error" in scores:
         st.sidebar.error(f"Evaluation Error: {scores['error']}")
         return
     
-    st.sidebar.subheader("📊 Response Quality")
-    
+    st.sidebar.subheader(title)
     for metric_name, score in scores.items():
         if isinstance(score, (int, float)):
             # Color code based on score
@@ -119,6 +118,8 @@ def main():
         st.session_state.current_backend = None
     if "last_evaluation" not in st.session_state:
         st.session_state.last_evaluation = None
+    if "last_batch_evaluation" not in st.session_state:
+        st.session_state.last_batch_evaluation = None
     if "last_contexts" not in st.session_state:
         st.session_state.last_contexts = []
     
@@ -177,8 +178,23 @@ def main():
         n_docs = st.slider("Documents to retrieve", 1, 10, 3)
         
         # Evaluation settings
-        st.subheader("📊 Evaluation Settings")
-        enable_evaluation = st.checkbox("Enable RAGAS Evaluation", value=RAGAS_AVAILABLE)
+        st.subheader("📊 Answer Evaluation Settings")
+        enable_evaluation = st.checkbox("Enable Query Answer Evaluation", value=RAGAS_AVAILABLE)
+        st.subheader("📊 Batch Evaluation Settings")
+        enable_bleu_evaluation = st.checkbox("Include BLEU in Batch Evaluation", value=RAGAS_AVAILABLE)
+        enable_rouge_evaluation = st.checkbox("Include ROUGE in Batch Evaluation", value=RAGAS_AVAILABLE)
+
+        if enable_bleu_evaluation or enable_rouge_evaluation:
+            if st.button("Run Batch Evaluation"):
+                metrics_to_run = []
+                if enable_bleu_evaluation:
+                    metrics_to_run.append(BleuScore())
+                if enable_rouge_evaluation:
+                    metrics_to_run.append(RougeScore())
+                
+                with st.spinner("Running batch evaluation... (this takes a few minutes)"):
+                    batch_scores = ragas_batch_evaluator.run_batch_evaluation(metrics_to_run)
+                    st.session_state.last_batch_evaluation = batch_scores
         
         # Initialize RAG system when backend changes
         if (st.session_state.current_backend != selected_backend_key):
@@ -200,7 +216,10 @@ def main():
     
     # Display evaluation metrics if available
     if st.session_state.last_evaluation and enable_evaluation:
-        display_evaluation_metrics(st.session_state.last_evaluation)
+        display_evaluation_metrics(st.session_state.last_evaluation, title="📊 Single Query Quality")
+        
+    if st.session_state.last_batch_evaluation and (enable_bleu_evaluation or enable_rouge_evaluation):
+        display_evaluation_metrics(st.session_state.last_batch_evaluation, title="📊 Batch Evaluation Metrics")
     
     # Display chat messages
     for message in st.session_state.messages:
@@ -245,13 +264,15 @@ def main():
                 # Evaluate response quality if enabled
                 if enable_evaluation and RAGAS_AVAILABLE:
                     with st.spinner("Evaluating response quality..."):
+                        metrics_to_run = []                            
                         evaluation_scores = evaluate_response_quality(
+                            metrics_to_run,
                             prompt, 
                             response, 
                             contexts_list
                         )
                         st.session_state.last_evaluation = evaluation_scores
-        
+                        
         # Add assistant response to chat history
         st.session_state.messages.append({"role": "assistant", "content": response})
         st.rerun()

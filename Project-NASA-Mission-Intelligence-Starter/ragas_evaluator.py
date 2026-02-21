@@ -15,7 +15,7 @@ except ImportError:
 
 
 # Single Shot Evaluator 
-def evaluate_response_quality(question: str, answer: str, contexts: List[str]) -> Dict[str, float]:
+def evaluate_response_quality(metrics: List[str], question: str, answer: str, contexts: List[str]) -> Dict[str, float]:
     """Evaluate response quality using RAGAS metrics"""
     if not RAGAS_AVAILABLE:
         return {"error": "RAGAS not available"}
@@ -32,6 +32,10 @@ def evaluate_response_quality(question: str, answer: str, contexts: List[str]) -
         Faithfulness()
     ]
     
+    if "BlueScore" in metrics:
+        metrics.append(BleuScore())
+    if "RougeScore" in metrics:
+        metrics.append(RougeScore())
     # Create sample
     sample = SingleTurnSample(
         user_input=question,
