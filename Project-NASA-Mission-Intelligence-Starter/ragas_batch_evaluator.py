@@ -30,10 +30,11 @@ from tqdm.auto import tqdm
 COLLECTION_NAME = "demo_collection"
 EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
 CHROMA_PERSIST_DIR = "./chroma_db"
-OPENAI_API_KEY = None  # Set your OpenAI API key here if available
+#initialize openai api key
+OPENAI_API_KEY = None
 N_RESULTS = 3
 
-# Set OpenAI API key if provided
+# Set OpenAI API key
 load_dotenv()
 api_key = os.environ.get('OPENAI_API_KEY')
 if api_key:
@@ -44,10 +45,7 @@ if api_key:
     evaluator_llm = LangchainLLMWrapper(ChatOpenAI(api_key=api_key, model="gpt-3.5-turbo"))
     evaluator_embeddings = LangchainEmbeddingsWrapper(OpenAIEmbeddings(api_key=api_key, model="text-embedding-3-small"))
     
-    # Define metrics to evaluate (V1 metrics initialized with Langchain wrappers)
-    # The aliases are pre-initialized V1 metrics, but they fallback to defaults.
-    # We initialize explicitly to provide the correct models
-    
+    # Define metrics to evaluate 
     metrics = [
         Faithfulness(llm=evaluator_llm),
         AnswerRelevancy(llm=evaluator_llm, embeddings=evaluator_embeddings),
