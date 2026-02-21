@@ -13,6 +13,8 @@ try:
 except ImportError:
     RAGAS_AVAILABLE = False
 
+
+# Single Shot Evaluator 
 def evaluate_response_quality(question: str, answer: str, contexts: List[str]) -> Dict[str, float]:
     """Evaluate response quality using RAGAS metrics"""
     if not RAGAS_AVAILABLE:
